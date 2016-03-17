@@ -105,10 +105,31 @@ namespace SpaceEngineersScripting
 
 			//Utility definitions
 			private const int
-				offsetStaticData = lengthId +2; //recordType +id +dataType
+				offsetRecordData = lengthId +2; //recordType +id +dataType
 
 
 			//Internal Implementation
+
+			/// <summary>
+			/// Returns a copy of the raw Data section of the given record (static or temporary).
+			/// </summary>
+			/// <returns>The raw Data section of the record referenced</returns>
+			/// <param name="store">The storage string to extract from.</param>
+			/// <param name="indexRecordStart">The index the record starts at.</param>
+			/// <remarks>
+			/// This procedure assumes the data structure of <paramref name="storage"/>
+			/// is correct; no checks are performed when trying to access it.
+			/// </remarks>
+			private string ExtractRecordData(ref string store, int indexRecordStart){
+				int
+					indexDataStart = indexRecordStart +offsetRecordData,
+					indexDataEnd = indexDataStart;
+				//Data segment continues until the end of the record
+				while (store[indexDataEnd] != recordTerminator)
+					indexDataEnd++;
+				return store.Substring(indexDataStart, indexDataEnd -indexDataStart);
+			}
+
 
 			/// <summary>
 			/// Finds the static record meeting all of the requirements.
@@ -165,28 +186,6 @@ namespace SpaceEngineersScripting
 				return -1;
 			}
 
-
-			/// <summary>
-			/// Returns a copy of the raw Data section of the given static record.
-			/// </summary>
-			/// <returns>The raw Data section of the static record referenced</returns>
-			/// <param name="store">The storage string to extract from.</param>
-			/// <param name="indexRecordStart">The index the record starts at.</param>
-			/// <remarks>
-			/// This procedure assumes the data structure of <paramref name="storage"/>
-			/// is correct; no checks are performed when trying to access it.
-			/// </remarks>
-			private string ExtractStaticData(ref string store, int indexRecordStart){
-				int
-				indexDataStart = indexRecordStart +offsetStaticData,
-				indexDataEnd = indexDataStart;
-				//Data segment continues until the end of the record
-				while (store[indexDataEnd] != recordTerminator)
-					indexDataEnd++;
-				return store.Substring(indexDataStart, indexDataEnd -indexDataStart);
-			}
-
-
 			/// <summary>
 			/// WriteStatic archetype; overwrite/add raw string as a static record.
 			/// </summary>
@@ -215,7 +214,6 @@ namespace SpaceEngineersScripting
 				}
 			}
 
-
 			/// <summary>
 			/// ReadStatic archetype; finds and returns the raw string from a static record.
 			/// </summary>
@@ -231,7 +229,95 @@ namespace SpaceEngineersScripting
 					data = null;
 					return false;
 				} else {
-					data = ExtractStaticData(ref store, indexRecordStart);
+					data = ExtractRecordData(ref store, indexRecordStart);
+					return true;
+				}
+			}
+
+
+			/// <summary>
+			/// Finds the temporary record meeting all of the requirements.
+			/// </summary>
+			/// <returns>The index of the start of the temporary record.</returns>
+			/// <param name="store">The storage string to search in.</param>
+			/// <param name="id">The record id to match.</param>
+			/// <param name="dataType">The record data type constant to match.</param>
+			/// <param name="startIndex">The index to advance from.</param>
+			/// <remarks>
+			/// This procedure assumes the data structure of <paramref name="storage"/>
+			/// is correct; no checks are performed when trying to access it.
+			/// </remarks>
+			private int FindTemporaryRecord(ref string store, ref string id, char dataType, int startIndex=0){
+				//Find the index of the start of the record matching id and dataType
+				//-otherwise return -1
+				int i = startIndex;
+				while (i < store.Length) {
+					//Examine the current record
+					//-log the start index in case we need to return in
+					//-check that we are examining a temporary record
+					//  >otherwise skip past it
+					//-check that the ids match
+					//-check that data types match
+					//-if they match, return the start index
+					//  >otherwise, skip data and continue with the next record
+					int indexRecordStart = i;
+					//check record type
+					if (store[i++] != recordTypeTemp) {
+						//skip any non-temporary records
+						while (store[i++] != recordTerminator) {};
+					} else {
+						//compare ids (without allocating more memory for strings)
+						bool matchId = true;
+						for (int ii=0; ii<lengthId; ii++) {
+							if (store[i++] != id[ii]) {
+								matchId = false;
+								break;
+							}
+						}
+						//check ids and data type
+						if (matchId && store[i++] == dataType) {
+							//record type, id and data type all match this record
+							return indexRecordStart;
+						} else {
+							//move on to next record
+							while (store[i++] != recordTerminator) {};
+						}
+					}
+
+				}
+				//if we run out of records, it was not found
+				return -1;
+			}
+
+			/// <summary>
+			/// AppendTemporary archetype; append raw string as a temporary record.
+			/// </summary>
+			private void AppendTemporaryData(ref string id, char dataType, ref string data){
+				Append(recordTypeTemp +id +dataType +data +recordTerminator);
+			}
+
+			/// <summary>
+			/// ReadTemporary archetype; finds and returns the raw string from a temporary record.
+			/// </summary>
+			/// <returns>true if the record was found, otherwise false</returns>
+			private bool ReadTemporaryData(ref string id, char dataType, out string data){
+				string
+					store = Store;
+				int
+					indexRecordStart = FindTemporaryRecord(ref store, ref id, dataType);
+
+				if (indexRecordStart < 0) {
+					//the record was not found
+					data = null;
+					return false;
+				} else {
+					data = ExtractRecordData(ref store, indexRecordStart);
+					//remove the record from the store
+					int
+						indexRecordNext = indexRecordStart +offsetRecordData +data.Length +1;
+					Store =
+						store.Substring (0, indexRecordStart)
+						+store.Substring (indexRecordNext, store.Length -indexRecordNext);
 					return true;
 				}
 			}
@@ -244,7 +330,7 @@ namespace SpaceEngineersScripting
 			}
 
 
-			public static string extendId(string id){
+			public static string ExtendId(string id){
 				return id.PadRight(lengthId, ' ');
 			}
 
@@ -302,6 +388,59 @@ namespace SpaceEngineersScripting
 				}
 			}
 
+
+			public void AppendTemporaryInt(string id, int value){
+				string data = value.ToString ();
+				AppendTemporaryData(ref id, dataTypeInt, ref data);
+			}
+
+			public bool ReadTemporaryInt(string id, out int value){
+				string data;
+				if ( ReadTemporaryData(ref id, dataTypeInt, out data) ) {
+					//Record found
+					//Validity depends on ability to parse the data
+					return int.TryParse(data, out value);
+				} else {
+					//The record could not be found
+					value = 0;
+					return false;
+				}
+			}
+
+
+			public void AppendTemporaryFloat(string id, float value){
+				string data = value.ToString ("R");
+				AppendTemporaryData(ref id, dataTypeFloat, ref data);
+			}
+
+			public bool ReadTemporaryFloat(string id, out float value){
+				string data;
+				if ( ReadTemporaryData(ref id, dataTypeFloat, out data) ) {
+					//Record found
+					//Validity depends on ability to parse the data
+					return float.TryParse(data, out value);
+				} else {
+					//The record could not be found
+					value = float.NaN;
+					return false;
+				}
+			}
+
+
+			public void AppendTemporaryString(string id, string value){
+				AppendTemporaryData(ref id, dataTypeString, ref value);
+			}
+
+			public bool ReadTemporaryString(string id, out string value){
+				if ( ReadTemporaryData(ref id, dataTypeString, out value) ) {
+					//Record found
+					return true;
+				} else {
+					//The record could not be found
+					value = null;
+					return false;
+				}
+			}
 		}
 
 
@@ -312,8 +451,8 @@ namespace SpaceEngineersScripting
 		Bus bus;
 
 		readonly string
-			aId = Bus.extendId ("a"),
-			bId = Bus.extendId ("b");
+			aId = Bus.ExtendId ("a"),
+			bId = Bus.ExtendId ("b");
 
 		float
 			a;
