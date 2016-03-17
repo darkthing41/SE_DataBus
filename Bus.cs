@@ -120,7 +120,7 @@ namespace SpaceEngineersScripting
 			/// This procedure assumes the data structure of <paramref name="storage"/>
 			/// is correct; no checks are performed when trying to access it.
 			/// </remarks>
-			private string ExtractRecordData(ref string store, int indexRecordStart){
+			private static string ExtractRecordData(ref string store, int indexRecordStart){
 				int
 					indexDataStart = indexRecordStart +offsetRecordData,
 					indexDataEnd = indexDataStart;
@@ -143,7 +143,7 @@ namespace SpaceEngineersScripting
 			/// This procedure assumes the data structure of <paramref name="storage"/>
 			/// is correct; no checks are performed when trying to access it.
 			/// </remarks>
-			private int FindStaticRecord(ref string store, ref string id, char dataType, int startIndex=0){
+			private static int FindStaticRecord(ref string store, ref string id, char dataType, int startIndex=0){
 				//Find the index of the start of the record matching id and dataType
 				//-otherwise return -1
 				int i = startIndex;
@@ -247,7 +247,7 @@ namespace SpaceEngineersScripting
 			/// This procedure assumes the data structure of <paramref name="storage"/>
 			/// is correct; no checks are performed when trying to access it.
 			/// </remarks>
-			private int FindTemporaryRecord(ref string store, ref string id, char dataType, int startIndex=0){
+			private static int FindTemporaryRecord(ref string store, ref string id, char dataType, int startIndex=0){
 				//Find the index of the start of the record matching id and dataType
 				//-otherwise return -1
 				int i = startIndex;
