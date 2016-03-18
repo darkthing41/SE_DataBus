@@ -234,6 +234,30 @@ namespace SpaceEngineersScripting
 				}
 			}
 
+			/// <summary>
+			/// DeleteStatic archetype; deletes a static record of the given Data Type.
+			/// </summary>
+			/// <returns>true if the record was found, otherwise false</returns>
+			private bool DeleteStaticData(ref string id, char dataType){
+				string
+					store = Store;
+				int
+					indexRecordStart = FindStaticRecord(ref store, ref id, dataType);
+
+				if (indexRecordStart < 0) {
+					//the record was not found
+					return false;
+				} else {
+					//delete the existing record
+					//-find the length of this record
+					//-remove that many characters from the store
+					int indexRecordNext = indexRecordStart;
+					while (store[indexRecordNext++] != recordTerminator) {};
+					Store = store.Remove(indexRecordStart, indexRecordNext -indexRecordStart);
+					return true;
+				}
+			}
+
 
 			/// <summary>
 			/// Finds the temporary record meeting all of the requirements.
@@ -313,11 +337,8 @@ namespace SpaceEngineersScripting
 				} else {
 					data = ExtractRecordData(ref store, indexRecordStart);
 					//remove the record from the store
-					int
-						indexRecordNext = indexRecordStart +offsetRecordData +data.Length +1;
-					Store =
-						store.Substring (0, indexRecordStart)
-						+store.Substring (indexRecordNext, store.Length -indexRecordNext);
+					//-derive the total record length and remove that many characters
+					Store = store.Remove(indexRecordStart, offsetRecordData +data.Length +1);
 					return true;
 				}
 			}
@@ -353,6 +374,10 @@ namespace SpaceEngineersScripting
 				}
 			}
 
+			public bool DeleteStaticInt(string id){
+				return DeleteStaticData(ref id, dataTypeInt);
+			}
+
 
 			public void WriteStaticFloat(string id, float value){
 				string data = value.ToString ("R");
@@ -372,6 +397,10 @@ namespace SpaceEngineersScripting
 				}
 			}
 
+			public bool DeleteStaticFloat(string id){
+				return DeleteStaticData(ref id, dataTypeFloat);
+			}
+
 
 			public void WriteStaticString(string id, string value){
 				WriteStaticData(ref id, dataTypeString, ref value);
@@ -386,6 +415,10 @@ namespace SpaceEngineersScripting
 					value = null;
 					return false;
 				}
+			}
+
+			public bool DeleteStaticString(string id){
+				return DeleteStaticData(ref id, dataTypeString);
 			}
 
 
