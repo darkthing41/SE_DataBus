@@ -290,7 +290,6 @@ namespace SpaceEngineersScripting
 					//check record type
 					if (store[i++] != recordTypeTemp) {
 						//skip any non-temporary records
-						while (store[i++] != recordTerminator) {};
 						//-jump to data field
 						//-skip until end of record
 						i += (offsetRecordData -1);
@@ -309,11 +308,11 @@ namespace SpaceEngineersScripting
 						if (matchId && store[i++] == dataType) {
 							//record type, id and data type all match this record
 							return indexRecordStart;
-						} else {
-							//move on to next record
-							while (store[i++] != recordTerminator) {};
 						}
+						//else skip until end of record
 					}
+					//move on to next record
+					while (store[i++] != recordTerminator) {};
 
 				}
 				//if we run out of records, it was not found
