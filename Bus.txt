@@ -142,10 +142,12 @@ public struct Bus
                 for (int ii=0; ii<lengthId; ii++) {
                     if (store[i++] != id[ii]) {
                         matchId = false;
+                        //jump to the start of the data field
+                        i = startIndex +offsetRecordData;
                         break;
                     }
                 }
-                //check ids and data type
+                //check id and if necessary data type
                 if (matchId && store[i++] == dataType) {
                     //record type, id and data type all match this record
                     return indexRecordStart;
@@ -263,16 +265,21 @@ public struct Bus
             if (store[i++] != recordTypeTemp) {
                 //skip any non-temporary records
                 while (store[i++] != recordTerminator) {};
+                //-jump to data field
+                //-skip until end of record
+                i += (offsetRecordData -1);
             } else {
                 //compare ids (without allocating more memory for strings)
                 bool matchId = true;
                 for (int ii=0; ii<lengthId; ii++) {
                     if (store[i++] != id[ii]) {
                         matchId = false;
+                        //jump to the start of the data field
+                        i = startIndex +offsetRecordData;
                         break;
                     }
                 }
-                //check ids and data type
+                //check id and if necessary data type
                 if (matchId && store[i++] == dataType) {
                     //record type, id and data type all match this record
                     return indexRecordStart;
