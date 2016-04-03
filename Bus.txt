@@ -84,16 +84,6 @@ public struct Bus
 
     //Internal Implementation
 
-    /// <summary>
-    /// Returns a copy of the raw Data section of the given record (static or temporary).
-    /// </summary>
-    /// <returns>The raw Data section of the record referenced</returns>
-    /// <param name="store">The storage string to extract from.</param>
-    /// <param name="indexRecordStart">The index the record starts at.</param>
-    /// <remarks>
-    /// This procedure assumes the data structure of <paramref name="storage"/>
-    /// is correct; no checks are performed when trying to access it.
-    /// </remarks>
     private static string ExtractRecordData(ref string store, int indexRecordStart){
         int
             indexDataStart = indexRecordStart +offsetRecordData,
@@ -105,18 +95,6 @@ public struct Bus
     }
 
 
-    /// <summary>
-    /// Finds the static record meeting all of the requirements.
-    /// </summary>
-    /// <returns>The index of the start of the static record.</returns>
-    /// <param name="store">The storage string to search in.</param>
-    /// <param name="id">The record id to match.</param>
-    /// <param name="dataType">The record data type constant to match.</param>
-    /// <param name="startIndex">The index to advance from.</param>
-    /// <remarks>
-    /// This procedure assumes the data structure of <paramref name="storage"/>
-    /// is correct; no checks are performed when trying to access it.
-    /// </remarks>
     private static int FindStaticRecord(ref string store, ref string id, char dataType, int startIndex=0){
         //Find the index of the start of the record matching id and dataType
         //-otherwise return -1
@@ -162,9 +140,6 @@ public struct Bus
         return -1;
     }
 
-    /// <summary>
-    /// WriteStatic archetype; overwrite/add raw string as a static record.
-    /// </summary>
     private void WriteStaticData(ref string id, char dataType, ref string data){
         string
             store = Store;
@@ -181,7 +156,7 @@ public struct Bus
             //overwrite the existing record in-place
             //-find the start of the next record
             //-insert new record between end of previous record and next record
-            int indexRecordNext = indexRecordStart;
+            int indexRecordNext = indexRecordStart +offsetRecordData;
             while (store[indexRecordNext++] != recordTerminator) {};
             Store =
                 store.Substring (0, indexRecordStart)
@@ -190,10 +165,6 @@ public struct Bus
         }
     }
 
-    /// <summary>
-    /// ReadStatic archetype; finds and returns the raw string from a static record.
-    /// </summary>
-    /// <returns>true if the record was found, otherwise false</returns>
     private bool ReadStaticData(ref string id, char dataType, out string data){
         string
             store = Store;
@@ -210,10 +181,6 @@ public struct Bus
         }
     }
 
-    /// <summary>
-    /// DeleteStatic archetype; deletes a static record of the given Data Type.
-    /// </summary>
-    /// <returns>true if the record was found, otherwise false</returns>
     private bool DeleteStaticData(ref string id, char dataType){
         string
             store = Store;
@@ -235,18 +202,6 @@ public struct Bus
     }
 
 
-    /// <summary>
-    /// Finds the temporary record meeting all of the requirements.
-    /// </summary>
-    /// <returns>The index of the start of the temporary record.</returns>
-    /// <param name="store">The storage string to search in.</param>
-    /// <param name="id">The record id to match.</param>
-    /// <param name="dataType">The record data type constant to match.</param>
-    /// <param name="startIndex">The index to advance from.</param>
-    /// <remarks>
-    /// This procedure assumes the data structure of <paramref name="storage"/>
-    /// is correct; no checks are performed when trying to access it.
-    /// </remarks>
     private static int FindTemporaryRecord(ref string store, ref string id, char dataType, int startIndex=0){
         //Find the index of the start of the record matching id and dataType
         //-otherwise return -1
@@ -293,17 +248,10 @@ public struct Bus
         return -1;
     }
 
-    /// <summary>
-    /// AppendTemporary archetype; append raw string as a temporary record.
-    /// </summary>
     private void AppendTemporaryData(ref string id, char dataType, ref string data){
         Append(recordTypeTemp +id +dataType +data +recordTerminator);
     }
 
-    /// <summary>
-    /// ReadTemporary archetype; finds and returns the raw string from a temporary record.
-    /// </summary>
-    /// <returns>true if the record was found, otherwise false</returns>
     private bool ReadTemporaryData(ref string id, char dataType, out string data){
         string
             store = Store;

@@ -207,7 +207,7 @@ namespace SpaceEngineersScripting
 					//overwrite the existing record in-place
 					//-find the start of the next record
 					//-insert new record between end of previous record and next record
-					int indexRecordNext = indexRecordStart;
+					int indexRecordNext = indexRecordStart +offsetRecordData;
 					while (store[indexRecordNext++] != recordTerminator) {};
 					Store =
 						store.Substring (0, indexRecordStart)
