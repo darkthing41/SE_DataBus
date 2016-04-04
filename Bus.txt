@@ -194,7 +194,7 @@ public struct Bus
             //delete the existing record
             //-find the length of this record
             //-remove that many characters from the store
-            int indexRecordNext = indexRecordStart;
+            int indexRecordNext = indexRecordStart +offsetRecordData;
             while (store[indexRecordNext++] != recordTerminator) {};
             Store = store.Remove(indexRecordStart, indexRecordNext -indexRecordStart);
             return true;
