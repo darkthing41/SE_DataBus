@@ -94,15 +94,16 @@ namespace SpaceEngineersScripting
 				lengthId = 16;
 
 			//The source of the storage
-			public IMyTextPanel bus;
+			public IMyTerminalBlock
+				bus;
 
 			//Internal storage interface
 			private string Store{
-				get { return bus.GetPublicText(); }
-				set { bus.WritePublicText(value, false); }
+				get { return bus.CustomData; }
+				set { bus.CustomData = value; }
 			}
 			private void Append(string value){
-				bus.WritePublicText(value, true);
+				bus.CustomData += value;
 			}
 
 
@@ -355,7 +356,7 @@ namespace SpaceEngineersScripting
 
 			//PUBLIC INTERFACE
 
-			public Bus(IMyTextPanel bus){
+			public Bus(IMyTerminalBlock bus){
 				this.bus = bus;
 			}
 
@@ -490,6 +491,7 @@ namespace SpaceEngineersScripting
 		//--------------------
 		bool restarted = true;
 
+		IMyTextPanel text;
 		Bus bus;
 
 		readonly string
@@ -505,7 +507,8 @@ namespace SpaceEngineersScripting
 		public void Main(string argument)
 		{
 			if (restarted){
-				bus = new Bus( (IMyTextPanel)GridTerminalSystem.GetBlockWithName("Text Panel") );
+				text = (IMyTextPanel)GridTerminalSystem.GetBlockWithName ("Text Panel");
+				bus = new Bus (text);
 				restarted = false;
 
 				if ( !bus.ReadStaticFloat (aId, out a) ) {
@@ -518,6 +521,7 @@ namespace SpaceEngineersScripting
 
 			bus.WriteStaticFloat(bId, (float)Math.Sqrt(a) );
 
+			text.WritePublicText (text.CustomData);
 		}
 		#endregion
 		#region footer
